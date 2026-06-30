@@ -480,3 +480,24 @@ Safety properties:
 - Reports are written as `patrol.json` and `patrol.md` under the output root.
 - It does not update heat, recall_count, last_recalled, status, review audit, recall audit, active/pending, L0, PM2, cron, or `.env`.
 - Every finding is a review-only suggestion; applying anything requires a separate approved write phase with backup and rollback.
+
+## Phase 2 Implementation Note: Z Axis Fact Evolution Dry-Run
+
+The minimal Phase 2 implementation is `scripts/memory-v2-fact-evolution-dry-run.js`. It is a conservative, rules-only candidate report for possible stale facts, possible conflicts, and possible supersession candidates.
+
+Example manual run:
+
+```bash
+node scripts/memory-v2-fact-evolution-dry-run.js \
+  --db /root/.cyberboss/memory-v2.sqlite \
+  --output-root /root/.cyberboss/inbox/memory-v2/fact-evolution-reports
+```
+
+Safety properties:
+
+- The script requires an explicit `--db` path and has no production default.
+- SQLite is opened with `readOnly: true` and `PRAGMA query_only = ON`.
+- It does not read L0 originals.
+- It does not insert, update, delete, migrate schema, write audit, write `superseded_by`, write contradiction markers, change memory status, update heat, or touch live recall.
+- Ordinary likes/dislikes are not treated as high-confidence conflicts. Preference handling is limited to explicit `stable preference` wording and remains low/medium confidence only.
+- Every candidate is review-only and includes `candidateType`, `confidence`, `factDomain`, `factKey`, `involvedMemoryIds`, `evidenceSnippets`, `reason`, `suggestedHumanAction`, and `safetyNote`.
